@@ -253,7 +253,4 @@ TD.RoundTable = {
 			{Delay = 0.25, Enemy = "Zombine"}
 		}	
 	}
-
-
-
 }
