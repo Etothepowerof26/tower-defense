@@ -92,6 +92,20 @@ if(SERVER)then
 			Health = 1000,
 			Scale = 1,
 			MoneyOnKill = 250
+		},
+		["Alyx"] = {
+			Model = "models/alyx.mdl",
+			Speed = 200,
+			Health = 250,
+			Scale = math.random(0.75,1),
+			MoneyOnKill = 100
+		},
+		["Kleiner"] = {
+			Model = "models/kleiner.mdl",
+			Speed = 150,
+			Health = 150,
+			Scale = math.random(0.5,0.75),
+			MoneyOnKill = 75
 		}
 	}
 	

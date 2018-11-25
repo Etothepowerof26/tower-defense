@@ -174,7 +174,7 @@ TD.RoundTable = {
 			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
 			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
 			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
-			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
+			{Delay = 0.25, Enemy = "PoisonHeadcrab"}
 		}
 	},
 	{
@@ -193,7 +193,67 @@ TD.RoundTable = {
 			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
 			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
 			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
-			{Delay = 0.25, Enemy = "Antlion"},
+			{Delay = 0.25, Enemy = "Antlion"}
 		}
+	},
+	{	--Engine_Machiner waves, just to test
+		Sequence = {
+			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
+			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
+			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
+			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
+			{Delay = 0.25, Enemy = "FastHeadcrab"},
+			{Delay = 0.5,  Enemy = "Kleiner"},
+			{Delay = 0.25, Enemy = "Headcrab"},
+			{Delay = 0.25, Enemy = "Headcrab"},
+			{Delay = 0.25, Enemy = "FastHeadcrab"},
+			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
+			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
+			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
+			{Delay = 0.25, Enemy = "Antlion"},
+			{Delay = 0.25, Enemy = "Antlion"},
+			{Delay = 1,    Enemy = "Alyx"}
+		}
+	},
+	{	--Engine_Machiner waves, just to test
+		Sequence = {
+			{Delay = 0.25, Enemy = "Headcrab"},
+			{Delay = 0.25, Enemy = "FastHeadcrab"},
+			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
+			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
+			{Delay = 0.25, Enemy = "FastHeadcrab"},
+			{Delay = 0.25, Enemy = "Headcrab"},
+			{Delay = 0.25, Enemy = "Headcrab"},
+			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
+			{Delay = 0.25, Enemy = "Zombine"},
+			{Delay = 0.25, Enemy = "Zombie"},
+			{Delay = 0.25, Enemy = "FastZombie"},
+			{Delay = 0.25, Enemy = "Zombie"},
+			{Delay = 0.25, Enemy = "Zombie"},
+			{Delay = 0.25, Enemy = "Alyx"},
+			{Delay = 0.25, Enemy = "Alyx"}
+		}
+	},
+	{	--Engine_Machiner waves, just to test
+		Sequence = {
+			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
+			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
+			{Delay = 0.25, Enemy = "Zombie"},
+			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
+			{Delay = 0.25, Enemy = "FastHeadcrab"},
+			{Delay = 0.25, Enemy = "Zombine"},
+			{Delay = 0.25, Enemy = "FastZombie"},
+			{Delay = 0.25, Enemy = "Zombie"},
+			{Delay = 0.25, Enemy = "FastHeadcrab"},
+			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
+			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
+			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
+			{Delay = 0.25, Enemy = "Antlion"},
+			{Delay = 0.25, Enemy = "Antlion"},
+			{Delay = 0.25, Enemy = "Zombine"}
+		}	
 	}
+
+
+
 }
