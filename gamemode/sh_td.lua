@@ -97,14 +97,14 @@ if(SERVER)then
 			Model = "models/alyx.mdl",
 			Speed = 200,
 			Health = 250,
-			Scale = math.random(0.75,1),
+			Scale = .75,
 			MoneyOnKill = 100
 		},
 		["Kleiner"] = {
 			Model = "models/kleiner.mdl",
 			Speed = 150,
 			Health = 150,
-			Scale = math.random(0.5,0.75),
+			Scale = .75,
 			MoneyOnKill = 75
 		}
 	}
