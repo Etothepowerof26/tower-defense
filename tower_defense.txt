@@ -1,0 +1,7 @@
+"tower_defense"
+{
+	"base"		"base"
+	"title"		"Tower Defense"
+	"maps"		"^sk_"
+	"menusystem"	"1"
+}
