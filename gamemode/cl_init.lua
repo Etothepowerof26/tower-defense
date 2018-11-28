@@ -1,5 +1,6 @@
 include("shared.lua")
 include("sh_td.lua")
+include("cl_td.lua")
 
 net.Receive("TD:ChatAddText", function()
 	local Table = net.ReadTable()
