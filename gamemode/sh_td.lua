@@ -164,7 +164,6 @@ if(SERVER)then
 	TD.WaveStarted = false
 	TD.GameStarted = false
 	
-	
 	TD.LastCheckPlayers = CurTime()
 	
 	timer.Create("TD:Think", 1, 0, function()
