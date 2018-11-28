@@ -1,63 +1,75 @@
---[[
 TD.EnemyTable = {
-		["Headcrab"] = {
-			Model = "models/Lamarr.mdl",
-			Speed = 100, -- Player Walking Speed
-			Health = 50,
-			Scale = 1,
-			MoneyOnKill = 15
+	["Headcrab"] = {
+		Model = "models/Lamarr.mdl",
+		Speed = 100, -- Player Walking Speed
+		Health = 50,
+		Scale = 1,
+		MoneyOnKill = 10
+	},
+	["FastHeadcrab"] = { -- Fast Headcrab
+		Model = "models/headcrab.mdl",
+		Speed = 175,
+		Health = 35, -- Less health than the regular headcrab
+		Scale = 1,
+		MoneyOnKill = 10
+	},
+	["PoisonHeadcrab"] = {
+		Model = "models/headcrabblack.mdl",
+		Speed = 125,
+		Health = 75,-- Little stronger and little faster
+		Scale = 1,
+		MoneyOnKill = 15
+	},
+	["Zombie"] = { -- More health than headcrabs
+		Model = "models/Zombie/Classic.mdl",
+		Speed = 125,
+		Health = 100,
+		Scale = 1,
+		MoneyOnKill = 30
+	},
+	["FastZombie"] = {
+		Model = "models/Zombie/Fast.mdl",
+		Speed = 200,
+		Health = 50, -- Has the health of a regular headcrab but 'super' fast
+		Scale = 1,
+		MoneyOnKill = 35
+	},
+	["Zombine"] = {
+		Model = "models/zombie/zombie_soldier.mdl", -- a miniboss?
+		Speed = 100,
+		Health = 500,
+		Scale = 1,
+		MoneyOnKill = 50
+	},
+	["Antlion"] = {
+		Model = "models/AntLion.mdl", -- a miniboss?
+		Speed = 125,
+		Health = 300,
+		Scale = 1,
+		MoneyOnKill = 100
 		},
-		["FastHeadcrab"] = { -- Fast Headcrab
-			Model = "models/headcrab.mdl",
-			Speed = 175,
-			Health = 35, -- Less health than the regular headcrab
-			Scale = 1,
-			MoneyOnKill = 15
-		},
-		["PoisonHeadcrab"] = {
-			Model = "models/headcrabblack.mdl",
-			Speed = 125,
-			Health = 75,-- Little stronger and little faster
-			Scale = 1,
-			MoneyOnKill = 25 
-		},
-		["Zombie"] = { -- More health than headcrabs
-			Model = "models/Zombie/Classic.mdl",
-			Speed = 125,
-			Health = 100,
-			Scale = 1,
-			MoneyOnKill = 50
-		},
-		["FastZombie"] = {
-			Model = "models/Zombie/Fast.mdl",
-			Speed = 200,
-			Health = 50, -- Has the health of a regular headcrab but 'super' fast
-			Scale = 1,
-			MoneyOnKill = 60
-		},
-		["Zombine"] = {
-			Model = "models/zombie/zombie_soldier.mdl", -- a miniboss?
-			Speed = 100,
-			Health = 500,
-			Scale = 1,
-			MoneyOnKill = 150
-		},
-		["Antlion"] = {
-			Model = "models/AntLion.mdl", -- a miniboss?
-			Speed = 125,
-			Health = 300,
-			Scale = 1,
-			MoneyOnKill = 200
-		},
-		["AntlionGuard"] = {
-			Model = "models/antlion_guard.mdl", -- One of the bosses
-			Speed = 75,
-			Health = 1000,
-			Scale = 1,
-			MoneyOnKill = 500
-		}
+	["AntlionGuard"] = {
+		Model = "models/antlion_guard.mdl", -- One of the bosses
+		Speed = 75,
+		Health = 1000,
+		Scale = 1,
+		MoneyOnKill = 250
+	},
+	["Alyx"] = {
+		Model = "models/alyx.mdl",
+		Speed = 200,
+		Health = 250,
+		Scale = .75,
+		MoneyOnKill = 100
+	},
+	["Kleiner"] = {
+		Model = "models/kleiner.mdl",
+		Speed = 150,
+		Health = 150,
+		Scale = .75,
+		MoneyOnKill = 75
 	}
-]]
+}
 
 TD.RoundTable = {
 	{
