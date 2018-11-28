@@ -1,7 +1,7 @@
 GM.Name    = "Tower Defense"
 GM.Author  = "twentysix"
 GM.Email   = ""
-GM.Website = "Etothepowerof26.github.io"
+GM.Website = "https://github.com/Etothepowerof26/tower-defense"
 
 DeriveGamemode("base")
 

@@ -30,6 +30,7 @@ function GM:PlayerSpawn(Player)
 	player_manager.SetPlayerClass(Player, "player_default")
 	player_manager.RunClass(Player, "SetModel")
 	self:PlayerLoadout(Player)
+	Player:SetTeam(1)
 end
 
 function GM:PlayerInitialSpawn(Player)
