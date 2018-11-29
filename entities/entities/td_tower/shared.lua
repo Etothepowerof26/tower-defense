@@ -29,6 +29,7 @@ if(SERVER)then
 		self:SetShootSpeed(TowerTable.Stats.ShootSpeed)
 		self:SetNumBullets(TowerTable.Stats.NumBullets)
 		self:SetLastShoot(CurTime())
+		self.Think = TowerTable.Think
 	end
 	
 	function ENT:Initialize()
@@ -51,31 +52,6 @@ if(SERVER)then
 			end
 		end
 		return Target
-	end
-	
-	function ENT:Think()
-		if(CurTime()>=self:GetLastShoot()+self:GetShootSpeed())then
-			
-			self:SetLastShoot(CurTime())
-			
-			local Target = self:GetNearestTarget()
-			if(IsValid(Target))then
-				local Source = self:GetPos()+Vector(0,0,self:OBBMaxs().z/2)
-				local TPosition = Target:GetPos()+Target:OBBCenter()
-				local Bullet = {
-					Attacker = self:GetOwner(),
-					Num = self:GetNumBullets(),
-					Src = Source,
-					Dir = (TPosition-Source),
-					Spread = Vector(0,0,0),
-					TracerName = "AirboatGunHeavyTracer",
-					Force = 10,
-					Damage = self:GetDamage(),
-					AmmoType = 2
-				}
-				self:FireBullets(Bullet)
-			end
-		end
 	end
 else
 	function ENT:Draw()

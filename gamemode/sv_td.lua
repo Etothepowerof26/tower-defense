@@ -208,6 +208,61 @@ TD.RoundTable = {
 			{Delay = 0.25, Enemy = "Antlion"}
 		}
 	},
+	{
+		Sequence = {
+			{Delay = 1, Enemy = "Antlion"},
+			{Delay = 1, Enemy = "Antlion"},
+			{Delay = 1, Enemy = "Antlion"},
+			{Delay = 1, Enemy = "Antlion"},
+			{Delay = 1, Enemy = "Antlion"},
+			{Delay = 1, Enemy = "Antlion"},
+			{Delay = 1, Enemy = "Antlion"},
+			{Delay = 1, Enemy = "Antlion"},
+			{Delay = 1, Enemy = "Antlion"},
+			{Delay = 1, Enemy = "Antlion"},
+			{Delay = 1, Enemy = "Antlion"},
+			{Delay = 1, Enemy = "Antlion"},
+			{Delay = 1, Enemy = "Antlion"},
+			{Delay = 1, Enemy = "Antlion"},
+			{Delay = 1, Enemy = "Antlion"},
+			{Delay = 1, Enemy = "Antlion"},
+			{Delay = 1, Enemy = "Antlion"},
+			{Delay = 1, Enemy = "Antlion"},
+			{Delay = 1, Enemy = "Antlion"},
+			{Delay = 1, Enemy = "Antlion"}
+		}
+	},
+	{
+		Sequence = {
+			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
+			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
+			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
+			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
+			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
+			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
+			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
+			{Delay = 1, Enemy = "Antlion"},
+			{Delay = 1, Enemy = "Antlion"},
+			{Delay = 1, Enemy = "Antlion"},
+			{Delay = 1, Enemy = "Antlion"},
+			{Delay = 1, Enemy = "Antlion"},
+			{Delay = 0.25, Enemy = "Zombie"},
+			{Delay = 0.25, Enemy = "Zombie"},
+			{Delay = 0.25, Enemy = "Zombie"},
+			{Delay = 0.25, Enemy = "Zombie"},
+			{Delay = 0.25, Enemy = "Zombie"},
+			{Delay = 0.25, Enemy = "Zombie"},
+			{Delay = 0.25, Enemy = "Zombie"},
+			{Delay = 0.25, Enemy = "Zombie"},
+			{Delay = 0.25, Enemy = "Zombie"},
+			{Delay = 0.25, Enemy = "Zombie"},
+			{Delay = 0.25, Enemy = "Zombie"},
+			{Delay = 0.25, Enemy = "Zombie"},
+			{Delay = 0.25, Enemy = "Zombie"},
+			{Delay = 0.25, Enemy = "Zombie"},
+			{Delay = 0.25, Enemy = "Zombie"},
+		}
+	}
 	--[[{	--Engine_Machiner waves, just to test
 		Sequence = {
 			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
