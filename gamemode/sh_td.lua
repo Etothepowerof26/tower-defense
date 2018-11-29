@@ -176,7 +176,7 @@ if(SERVER)then
 			TD.LastCheckPlayers = CurTime()
 			local AmntPlayers = table.Count(player.GetAll())
 			if(AmntPlayers>=GetConVar("td_minimum_players"):GetInt())then
-				ChatAddText(Color(255, 127, 127), "[TD] ", Color(255, 255, 255), "There are more than 4 players! The game is going to start!")
+				ChatAddText(Color(255, 127, 127), "[TD] ", Color(255, 255, 255), "There are more than " .. tostring(GetConVar("td_minimum_players"):GetInt()) .. " players! The game is going to start!")
 				TD.LastWaveStarted = CurTime()
 				TD.GameStarted = true
 				table.foreach(ents.FindByClass("td_tower"),function(k,v)

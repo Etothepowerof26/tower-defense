@@ -1,5 +1,3 @@
---cl_td
-	
 TD.CurrentTower = ""
 
 local function createfont(fontname, font, size, weight)
