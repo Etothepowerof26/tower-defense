@@ -125,15 +125,7 @@ if(SERVER)then
 				local Ent = ents.Create("td_point")
 				Ent:SetPos(v)
 				Ent:Spawn()
-				
-				if(i==1)then
-					Ent:SetPointType(1)
-				elseif(i==table.Count(MapTable))then
-					Ent:SetPointType(3)
-				else
-					Ent:SetPointType(2)
-				end
-				
+				Ent:SetPointType((i==1)and(1)or(i==table.Count(MapTable)and(3)or(2)))
 				TD.EntWaypoints[table.Count(TD.EntWaypoints) + 1] = Ent
 			end
 		end
@@ -183,7 +175,7 @@ if(SERVER)then
 	
 	TD.WaveDelay = CreateConVar("td_wave_delay", "15", FCVAR_NONE)
 	TD.PlayerCheckDelay = CreateConVar("td_player_check_delay", "10", FCVAR_NONE)
-	TD.MinimumPlayers = CreateConVar("td_minimum_players", "1", FCVAR_NONE)
+	TD.MinimumPlayers = CreateConVar("td_minimum_players", "2", FCVAR_NONE)
 	
 	TD.LastWaveStarted = CurTime()
 	TD.DisplayedWarningMessage = false
