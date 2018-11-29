@@ -208,7 +208,7 @@ TD.RoundTable = {
 			{Delay = 0.25, Enemy = "Antlion"}
 		}
 	},
-	{	--Engine_Machiner waves, just to test
+	--[[{	--Engine_Machiner waves, just to test
 		Sequence = {
 			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
 			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
@@ -264,5 +264,5 @@ TD.RoundTable = {
 			{Delay = 0.25, Enemy = "Antlion"},
 			{Delay = 0.25, Enemy = "Zombine"}
 		}	
-	}
+	}]]
 }
