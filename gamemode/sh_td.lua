@@ -154,7 +154,7 @@ if(SERVER)then
 	
 	TD.WaveDelay = CreateConVar("td_wave_delay", "15", FCVAR_NONE)
 	TD.PlayerCheckDelay = CreateConVar("td_player_check_delay", "10", FCVAR_NONE)
-	TD.MinimumPlayers = CreateConVar("td_minimum_players", "1", FCVAR_NONE)
+	TD.MinimumPlayers = CreateConVar("td_minimum_players", "2", FCVAR_NONE)
 	
 	TD.LastWaveStarted = CurTime()
 	TD.DisplayedWarningMessage = false
