@@ -50,9 +50,31 @@ Garry's Mod Tower Defense gamemode
 				end}
 			}
 		},
-		-- This think function will exist on the server. TODO
+		-- This think function will exist on the server.
+		-- Currently the default think function for the Basic Tower.
 		Think = function(self)
 			if CLIENT then return end
+			
+			if(CurTime()>=self:GetLastShoot()+self:GetShootSpeed())then
+				self:SetLastShoot(CurTime())
+				local Target = self:GetNearestTarget()
+				if(IsValid(Target))then
+					local Source = self:GetPos()+Vector(0,0,self:OBBMaxs().z/2)
+					local TPosition = Target:GetPos()+Target:OBBCenter()
+					local Bullet = {
+						Attacker = self:GetOwner(),
+						Num = self:GetNumBullets(),
+						Src = Source,
+						Dir = (TPosition-Source),
+						Spread = Vector(0,0,0),
+						TracerName = "AirboatGunHeavyTracer",
+						Force = 10,
+						Damage = self:GetDamage(),
+						AmmoType = 2
+					}
+					self:FireBullets(Bullet)
+				end
+			end
 		end
 	}
 ```
