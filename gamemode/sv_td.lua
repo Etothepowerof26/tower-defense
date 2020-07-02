@@ -72,7 +72,7 @@ TD.EnemyTable = {
 }
 
 TD.RoundTable = {
-	{
+	--[[{
 		Sequence = {
 			{Delay = 0.5, Enemy = "Headcrab"},
 			{Delay = 0.5, Enemy = "Headcrab"},
@@ -210,26 +210,35 @@ TD.RoundTable = {
 	},
 	{
 		Sequence = {
+			{Delay = 0.25, Enemy = "Zombie"},
+			{Delay = 0.25, Enemy = "Zombie"},
+			{Delay = 0.25, Enemy = "Zombie"},
 			{Delay = 1, Enemy = "Antlion"},
+			{Delay = 0.25, Enemy = "Zombie"},
+			{Delay = 0.25, Enemy = "Zombie"},
+			{Delay = 0.25, Enemy = "Zombie"},
 			{Delay = 1, Enemy = "Antlion"},
+			{Delay = 0.25, Enemy = "Zombie"},
+			{Delay = 0.25, Enemy = "Zombie"},
+			{Delay = 0.25, Enemy = "Zombie"},
 			{Delay = 1, Enemy = "Antlion"},
+			{Delay = 0.25, Enemy = "Zombie"},
+			{Delay = 0.25, Enemy = "Zombie"},
+			{Delay = 0.25, Enemy = "Zombie"},
 			{Delay = 1, Enemy = "Antlion"},
+			{Delay = 0.25, Enemy = "Zombie"},
+			{Delay = 0.25, Enemy = "Zombie"},
+			{Delay = 0.25, Enemy = "Zombie"},
 			{Delay = 1, Enemy = "Antlion"},
+			{Delay = 0.25, Enemy = "Zombie"},
+			{Delay = 0.25, Enemy = "Zombie"},
+			{Delay = 0.25, Enemy = "Zombie"},
 			{Delay = 1, Enemy = "Antlion"},
+			{Delay = 0.25, Enemy = "Zombie"},
+			{Delay = 0.25, Enemy = "Zombie"},
+			{Delay = 0.25, Enemy = "Zombie"},
 			{Delay = 1, Enemy = "Antlion"},
-			{Delay = 1, Enemy = "Antlion"},
-			{Delay = 1, Enemy = "Antlion"},
-			{Delay = 1, Enemy = "Antlion"},
-			{Delay = 1, Enemy = "Antlion"},
-			{Delay = 1, Enemy = "Antlion"},
-			{Delay = 1, Enemy = "Antlion"},
-			{Delay = 1, Enemy = "Antlion"},
-			{Delay = 1, Enemy = "Antlion"},
-			{Delay = 1, Enemy = "Antlion"},
-			{Delay = 1, Enemy = "Antlion"},
-			{Delay = 1, Enemy = "Antlion"},
-			{Delay = 1, Enemy = "Antlion"},
-			{Delay = 1, Enemy = "Antlion"}
+
 		}
 	},
 	{
@@ -262,6 +271,32 @@ TD.RoundTable = {
 			{Delay = 0.25, Enemy = "Zombie"},
 			{Delay = 0.25, Enemy = "Zombie"},
 		}
+	},
+	{
+		Sequence = (function()
+			local tab = {}
+			-- well im too lazy
+			for i = 1, 150, 3 do
+				tab[i] = {Delay = 0.05, Enemy = "Headcrab"}
+				tab[i+1] = {Delay = 0.05, Enemy = "PoisonHeadcrab"}
+				tab[i+2] = {Delay = 0.05, Enemy = "FastHeadcrab"}
+			end
+			return tab
+		end)()
+	},]]
+	{
+		Sequence = (function()
+			local tab = {}
+			-- well im too lazy
+			for i = 1, 1000, 1 do
+				tab[#tab+1] = {Delay = 0.5, Enemy = "Headcrab"}
+			end
+			for i = 1, 1000, 1 do
+				tab[#tab+1] = {Delay = 0.5, Enemy = "Zombie"}
+			end
+			
+			return tab
+		end)()
 	}
 	--[[{	--Engine_Machiner waves, just to test
 		Sequence = {

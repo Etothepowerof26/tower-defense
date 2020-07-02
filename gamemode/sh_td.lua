@@ -6,7 +6,6 @@ TD.TowerTable = {
 	["BasicTower"] = {
 		Model = "models/props_combine/breenglobe.mdl",
 		ShootSound = "weapons/ar2/fire1.wav",
-		BulletTracer = "AirboatGunHeavyTracer",
 		Price = 150,
 		PrintName = "Basic Tower",
 		Description = "For its type, it works really well.",
@@ -52,6 +51,56 @@ TD.TowerTable = {
 						AmmoType = 2
 					}
 					self:FireBullets(Bullet)
+				end
+			end
+		end
+	},
+	["RocketTower"] = {
+		Model = "models/props_combine/breenglobe.mdl",
+		ShootSound = "weapons/ar2/fire1.wav",
+		Price = 650,
+		PrintName = "Rocket Tower",
+		Description = "BOOM!",
+		Scale = 1,
+		Color = Color(255,0,0),
+		Stats = {
+			Damage = 200,
+			FindDist = 1500,
+			ShootSpeed = 1.5,
+			NumBullets = 1
+		},
+		Upgrades = {
+			[1] = {
+				{UpgradeName="Damage Upgrade",UpgradeDesc="Makes the tower stronger.",UpgradePrice=300,UpgradeCallback=function(self)
+					self:SetDamage(self:GetDamage()*1.25)
+				end}
+			},
+			[2] = {
+				{UpgradeName="Range Upgrade",UpgradeDesc="Makes the tower see a bit farther.",UpgradePrice=150,UpgradeCallback=function(self)
+					self:SetTargetDistance(self:GetTargetDistance()+300)
+				end}
+			}
+		},
+		--TODO: Add think function for serverside. It will allow for custom projectiles.
+		Think = function(self)
+			if CLIENT then return end
+			
+			if(CurTime()>=self:GetLastShoot()+self:GetShootSpeed())then
+				self:SetLastShoot(CurTime())
+				local Target = self:GetNearestTarget()
+				if(IsValid(Target))then
+					local Source = self:GetPos()+Vector(0,0,self:OBBMaxs().z)
+					local TPosition = Target:GetPos()
+					local Ang = (TPosition-(Source + Vector(0, 0, 100))):Angle()
+					
+					local r = ents.Create("rpg_missile")
+					r:SetPos(Source + Vector(0, 0, 100))
+					r:SetAngles(Ang)
+					r:SetSaveValue("m_flDamage", self:GetDamage())
+					r:Spawn()
+					r:Activate()
+					r:SetOwner(self:GetOwner())
+					
 				end
 			end
 		end
@@ -173,9 +222,10 @@ if(SERVER)then
 	-- Automation!
 	RunConsoleCommand("sv_hibernate_think", "1")
 	
-	TD.WaveDelay = CreateConVar("td_wave_delay", "15", FCVAR_NONE)
-	TD.PlayerCheckDelay = CreateConVar("td_player_check_delay", "10", FCVAR_NONE)
-	TD.MinimumPlayers = CreateConVar("td_minimum_players", "2", FCVAR_NONE)
+	TD.WaveDelay              = CreateConVar("td_wave_delay", "15", FCVAR_NONE)
+	TD.PlayerCheckDelay       = CreateConVar("td_player_check_delay", "10", FCVAR_NONE)
+	TD.MinimumPlayers         = CreateConVar("td_minimum_players", "2", FCVAR_NONE)
+	TD.HealthModifierPerRound = CreateConVar("td_health_modifier_per_round", "0.1", FCVAR_NONE)
 	
 	TD.LastWaveStarted = CurTime()
 	TD.DisplayedWarningMessage = false
@@ -196,7 +246,7 @@ if(SERVER)then
 					v:Remove();
 				end)
 				table.foreach(player.GetAll(),function(k,v)
-					v:SetNWInt("TD:Money",500)
+					v:SetNWInt("TD:Money",650)
 					v:Spawn()
 				end)
 			else

@@ -37,7 +37,7 @@ if(SERVER)then
 			self:SetTDDesiredSpeed(ETable.Speed)
 			self:SetModelScale(ETable.Scale)
 			self:SetMaxHealth(ETable.Health)
-			self:SetHealth(ETable.Health)
+			self:SetHealth(ETable.Health*(1+(GetConVar("td_health_modifier_per_round"):GetFloat()*TD.CurrentRound)))
 			self:SetTDEnemy(EnemyString)
 		end
 	end
@@ -49,19 +49,7 @@ if(SERVER)then
 		end
 	end
 	
-	-- Default BehaveUpdate
-	function ENT:BehaveUpdate( fInterval )
-		-- You really shouldn't override this method.
-		
-		if ( !self.BehaveThread ) then return end
-		
-		local ok, message = coroutine.resume( self.BehaveThread )
-		if ( ok == false ) then
-			self.BehaveThread = coroutine.create( function() self:RunBehavior() end )
-		end
-	end
-	
-	function ENT:RunBehavior()
+	function ENT:RunBehaviour()
 		while true do
 			local Point = TD.EntWaypoints[self:GetCurrentPoint()+1]
 			self.loco:FaceTowards(Point:GetPos())
@@ -76,7 +64,7 @@ if(SERVER)then
 	function ENT:OnKilled(dmginfo)
 		local Atk = dmginfo:GetAttacker()
 		local Inf = dmginfo:GetInflictor()
-		hook.Call("OnNPCKilled",GAMEMODE,self,Atk,Inf)
+		--hook.Call("OnNPCKilled",GAMEMODE,self,Atk,Inf)
 		self:BecomeRagdoll(dmginfo)
 		if(IsValid(Atk))and(Atk:IsPlayer())then
 			local EnemyTable=TD.EnemyTable[self:GetTDEnemy()]

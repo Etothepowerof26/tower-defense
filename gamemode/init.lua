@@ -35,7 +35,7 @@ function GM:PlayerSpawn(Player)
 end
 
 function GM:PlayerInitialSpawn(Player)
-	Player:SetNWInt("TD:Money", 500)
+	Player:SetNWInt("TD:Money", 650)
 end
 
 function GM:PlayerLoadout(Player)

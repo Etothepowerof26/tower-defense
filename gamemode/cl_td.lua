@@ -94,3 +94,39 @@ local function CreateTowerGUI()
 end
 
 net.Receive("TD:SpawnTowerGUI", CreateTowerGUI)
+
+-- nametags for towers
+hook.Add("PostDrawTranslucentRenderables", "TD:DrawTowerNames", function()
+	local e = ents.FindByClass"td_enemy"
+	if not (next(e) == nil) then
+		
+		for k,v in pairs(e) do
+			if v:Health() > 1 then
+				local mul=3
+				local eang = LocalPlayer():EyeAngles()
+				local epos = v:GetPos() + Vector(0, 0, v:OBBMaxs().z + 6) + eang:Up()
+				eang:RotateAroundAxis(eang:Forward(), 90)
+				eang:RotateAroundAxis(eang:Right(), 90)
+				
+				cam.Start3D2D(epos, eang, .05)
+				
+				surface.SetDrawColor(0, 0, 0, 255)
+				local hp = v:Health()
+				local mhp = v:GetMaxHealth()
+				surface.DrawRect(-mhp*mul/2,0,mhp*mul,30)
+				
+				local c = Color((255 * (1 - hp / mhp)), (255 * (hp / mhp)), 0)
+				surface.SetDrawColor(c.r, c.g, c.b, 255)
+				
+				local s = (-mhp*mul)/2 + 3
+				local sy = 3
+				local e = ((mhp*mul) * ((hp - 6) / mhp))
+				local ey = 24
+				surface.DrawRect(s, sy, e, ey)
+				
+				cam.End3D2D()
+			end
+		end
+	end
+end)
+-- healthbars for enemies
