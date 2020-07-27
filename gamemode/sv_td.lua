@@ -1,358 +1,233 @@
-TD.EnemyTable = {
-	["Headcrab"] = {
-		Model = "models/Lamarr.mdl",
-		Speed = 100, -- Player Walking Speed
-		Health = 50,
-		Scale = 1,
-		MoneyOnKill = 10
-	},
-	["FastHeadcrab"] = { -- Fast Headcrab
-		Model = "models/headcrab.mdl",
-		Speed = 175,
-		Health = 35, -- Less health than the regular headcrab
-		Scale = 1,
-		MoneyOnKill = 10
-	},
-	["PoisonHeadcrab"] = {
-		Model = "models/headcrabblack.mdl",
-		Speed = 125,
-		Health = 75,-- Little stronger and little faster
-		Scale = 1,
-		MoneyOnKill = 15
-	},
-	["Zombie"] = { -- More health than headcrabs
-		Model = "models/Zombie/Classic.mdl",
-		Speed = 125,
-		Health = 100,
-		Scale = 1,
-		MoneyOnKill = 30
-	},
-	["FastZombie"] = {
-		Model = "models/Zombie/Fast.mdl",
-		Speed = 200,
-		Health = 50, -- Has the health of a regular headcrab but 'super' fast
-		Scale = 1,
-		MoneyOnKill = 35
-	},
-	["Zombine"] = {
-		Model = "models/zombie/zombie_soldier.mdl", -- a miniboss?
-		Speed = 100,
-		Health = 500,
-		Scale = 1,
-		MoneyOnKill = 50
-	},
-	["Antlion"] = {
-		Model = "models/AntLion.mdl", -- a miniboss?
-		Speed = 125,
-		Health = 300,
-		Scale = 1,
-		MoneyOnKill = 100
+local Tag = "tower_defense"
+local Player = FindMetaTable("Player")
+module(Tag, package.seeall)
+
+local function thegamemode()
+	return GM or GAMEMODE or {}
+end
+
+/*
+	Tower Defense gamemode for GMod 13
+	made by E^26, started on 2020
+
+	The motivation behind this project is the lack of
+	tower defense gamemodes on the server list, because
+	I am a sucker for tower defense games.
+*/
+
+placed_towers = placed_towers or {}
+enemies = enemies or {}
+max_lives = GetConVar("gtd_default_lives"):GetInt()
+max_towers = GetConVar("gtd_max_towers"):GetInt()
+new_cash = GetConVar("gtd_default_cash"):GetInt()
+
+stinger_sounds = {
+	"music/stingers/HL1_stinger_song16.mp3",
+	"music/stingers/HL1_stinger_song27.mp3",
+	"music/stingers/HL1_stinger_song28.mp3",
+	"music/stingers/HL1_stinger_song7.mp3",
+	"music/stingers/HL1_stinger_song8.mp3",
+	"music/stingers/industrial_suspense1.wav"
+}
+boss_round_music = "music/stingers/industrial_suspense2.wav"
+
+ResetGame = function()
+	max_lives = GetConVar("gtd_default_lives"):GetInt()
+	max_towers = GetConVar("gtd_max_towers"):GetInt()
+	new_cash = GetConVar("gtd_default_cash"):GetInt()
+
+	-- default global ints
+	SetGlobalInt("tower_defense.round", 0)
+	SetGlobalInt("tower_defense.enemies_left", 0)
+	SetGlobalInt("tower_defense.time_left", 30)
+	SetGlobalInt("tower_defense.lives", max_lives)
+
+	SetGlobalBool("tower_defense.settingup", true)
+
+	PrintTable(Towers)
+end
+
+function ClearEnemies()
+	local _ents = ents.GetAll()
+	for i = 1, #_ents do
+		local ent = _ents[i]
+
+		if ent:GetClass() == "tower_defense_enemy" or ent.Base == "tower_defense_enemy" then
+			ent:Remove()
+		end
+	end
+end
+
+local ratelimit
+do
+	local ratelimits = {}
+
+	ratelimit = function(ply, name, time)
+		if not ratelimits[ply] then
+			ratelimits[ply] = {}
+		end
+
+		if not ratelimits[ply][name] then
+			ratelimits[ply][name] = SysTime() + time
+			return true
+		end
+
+		if SysTime() > ratelimits[ply][name] then
+			ratelimits[ply][name] = SysTime() + time
+			return true
+		end
+
+		return false
+	end
+end
+
+
+function Player:BuyTower(tower,pos)
+	local wep = self:GetActiveWeapon()
+	if wep:GetClass() == "tower_defense_tool" then
+		wep:SendWeaponAnim(ACT_PHYSCANNON_ANIMATE)
+	end
+	self:EmitSound("ambient/alarms/warningbell1.wav")
+	local t=ents.Create("tower_defense_tower")
+	t:Spawn()
+	t:SetPlayerOwner(self)
+	timer.Simple(0,function()
+		t:SetPos(pos+Vector(0,0,t:OBBMaxs().z/2))
+	end)
+	self:Notify("You have placed a " .. tower.name .. "!", 3, 5)
+	self:SetNWInt("tower_defense.cash", self:GetNWInt("tower_defense.cash") - tower.price)
+	if not placed_towers[self] then
+		placed_towers[self] = {t}
+	else
+		local _t = placed_towers[self]
+		_t[#_t + 1] = t
+	end
+end
+net.Receive("tower_defense.BuyTower", function(len,ply)
+	local tower = net.ReadString()
+	if not Towers[tower] then ply:Kick() return end
+	if not ratelimit(ply, "BuyTower", 2) then
+		ply:Notify("Slow down!", 1, 5)
+		return
+	end
+
+	local t = Towers[tower]
+	if ply:GetNWInt("tower_defense.cash",new_cash) >= t.price then
+		local pos = ply:GetEyeTrace().HitPos
+		ply:BuyTower(t,pos)
+	else
+		ply:Notify("You cannot afford this tower!", 1, 5)
+	end
+end)
+
+hook.Add("InitPostEntity", Tag, ResetGame)
+
+-- I wanna make sure the player fully loads before we do some stuff
+hook.Add("PlayerFullLoad", Tag, function(ply, loadtime)
+	print(ply, "character loaded in", loadtime, "seconds")
+	ply:SetCash(new_cash)
+
+	PrintMessage(3, ply:Nick() .. " has joined the game.")
+end)
+
+local cached = {}
+local function GetTowerBasedOnClass(class)
+	if cached[class] then
+		return unpack(cached[class])
+	end
+
+	for k,v in pairs(Towers) do
+		if v.ent == class then
+			cached[class] = {k, v}
+			return unpack(cached[class])
+		end
+	end
+	return nil
+end
+
+hook.Add("PlayerDisconnected", Tag, function(ply)
+	PrintMessage(3, ply:Nick() .. " has left the game.")
+
+	local money_pool = 0
+	if placed_towers[ply] then
+		print("selling",ply,"towers")
+		for i = 1, #placed_towers[ply] do
+			local tower = placed_towers[ply]:GetClass()
+			money_pool = money_pool + GetTowerBasedOnClass(tower).price
+
+			placed_towers[ply]:Remove()
+		end
+	end
+
+	PrintMessage(3, "Their towers have been sold and the money from the sale has been distributed between everyone in the game.")
+
+	local amnt = #player.GetAll()
+	for k,v in pairs(player.GetAll()) do
+		if v == ply then continue end 
+		
+		v:AddCash(math.floor(money_pool / amnt))
+	end
+end)
+
+mapTable = {
+	["td_wasteland_fix"] = {
+		Vector(-172.36859130859,-415,256.03125),
+		Vector(415.09606933594,-415,256.03125),
+		Vector(660,-528.67419433594,256.03121948242),
+		Vector(660,-699.03607177734,256.03125),
+		Vector(410.96697998047,-819,256.03128051758),
+		Vector(-392,-819,256.03125),
+		Vector(-392,-133.01284790039,256.03125),
+		Vector(-917,-150.60887145996,256.03125),
+		Vector(-917,-399.08746337891,256.03125),
+		{
+			Vector(-836,-524.24597167969,256.03125),
+			Vector(-986.75921630859,-523.60107421875,256.03121948242)
 		},
-	["AntlionGuard"] = {
-		Model = "models/antlion_guard.mdl", -- One of the bosses
-		Speed = 75,
-		Health = 1000,
-		Scale = 1,
-		MoneyOnKill = 250
-	},
-	["Alyx"] = {
-		Model = "models/alyx.mdl",
-		Speed = 200,
-		Health = 250,
-		Scale = .75,
-		MoneyOnKill = 100
-	},
-	["Kleiner"] = {
-		Model = "models/kleiner.mdl",
-		Speed = 150,
-		Health = 150,
-		Scale = .75,
-		MoneyOnKill = 75
+		Vector(-856,-768.18408203125,256.03125),
+		Vector(-855.04656982422,-924.76928710938,256.03125),
+		Vector(-978.73059082031,-927.00848388672,256.03125)
 	}
 }
+hook.Add("PlayerLoadout", Tag, function(ply)
+	ply:Give("tower_defense_tool")
+end)
 
-TD.RoundTable = {
-	--[[{
-		Sequence = {
-			{Delay = 0.5, Enemy = "Headcrab"},
-			{Delay = 0.5, Enemy = "Headcrab"},
-			{Delay = 0.5, Enemy = "Headcrab"},
-			{Delay = 0.5, Enemy = "Headcrab"},
-			{Delay = 0.5, Enemy = "Headcrab"},
-			{Delay = 0.5, Enemy = "Headcrab"},
-			{Delay = 0.5, Enemy = "Headcrab"},
-			{Delay = 0.5, Enemy = "Headcrab"},
-			{Delay = 0.5, Enemy = "Headcrab"},
-			{Delay = 0.5, Enemy = "Headcrab"},
-		}
-	},
-	{
-		Sequence = {
-			{Delay = 0.5, Enemy = "Headcrab"},
-			{Delay = 0.5, Enemy = "Headcrab"},
-			{Delay = 0.5, Enemy = "Headcrab"},
-			{Delay = 0.5, Enemy = "Headcrab"},
-			{Delay = 0.5, Enemy = "Headcrab"},
-			{Delay = 0.25, Enemy = "FastHeadcrab"},
-			{Delay = 0.25, Enemy = "FastHeadcrab"},
-			{Delay = 0.25, Enemy = "FastHeadcrab"},
-			{Delay = 0.25, Enemy = "Headcrab"},
-			{Delay = 0.5, Enemy = "Headcrab"},
-			{Delay = 0.5, Enemy = "Headcrab"},
-			{Delay = 0.5, Enemy = "Headcrab"},
-			{Delay = 0.5, Enemy = "Headcrab"},
-			{Delay = 0.5, Enemy = "Headcrab"},
-		}
-	},
-	{
-		Sequence = {
-			{Delay = 0.5, Enemy = "Headcrab"},
-			{Delay = 0.1, Enemy = "FastHeadcrab"},
-			{Delay = 0.5, Enemy = "Headcrab"},
-			{Delay = 0.1, Enemy = "FastHeadcrab"},
-			{Delay = 0.5, Enemy = "Headcrab"},
-			{Delay = 0.1, Enemy = "FastHeadcrab"},
-			{Delay = 0.5, Enemy = "Headcrab"},
-			{Delay = 0.1, Enemy = "FastHeadcrab"},
-			{Delay = 0.5, Enemy = "Headcrab"},
-			{Delay = 0.1, Enemy = "FastHeadcrab"},
-			{Delay = 0.5, Enemy = "Headcrab"},
-			{Delay = 0.1, Enemy = "FastHeadcrab"},
-			{Delay = 0.5, Enemy = "Headcrab"},
-			{Delay = 0.1, Enemy = "FastHeadcrab"},
-			{Delay = 0.5, Enemy = "Headcrab"},
-			{Delay = 0.1, Enemy = "FastHeadcrab"},
-			{Delay = 0.5, Enemy = "Headcrab"},
-			{Delay = 0.1, Enemy = "FastHeadcrab"},
-			{Delay = 0.5, Enemy = "Headcrab"},
-			{Delay = 0.1, Enemy = "FastHeadcrab"}
-		}
-	},
-	{
-		Sequence = {
-			{Delay = 0.25, Enemy = "FastHeadcrab"},
-			{Delay = 0.25, Enemy = "FastHeadcrab"},
-			{Delay = 0.25, Enemy = "FastHeadcrab"},
-			{Delay = 0.25, Enemy = "FastHeadcrab"},
-			{Delay = 0.25, Enemy = "FastHeadcrab"},
-			{Delay = 0.25, Enemy = "FastHeadcrab"},
-			{Delay = 0.25, Enemy = "FastHeadcrab"},
-			{Delay = 0.25, Enemy = "FastHeadcrab"},
-			{Delay = 0.25, Enemy = "FastHeadcrab"},
-			{Delay = 0.25, Enemy = "FastHeadcrab"},
-			{Delay = 0.25, Enemy = "FastHeadcrab"},
-			{Delay = 0.25, Enemy = "FastHeadcrab"},
-			{Delay = 0.25, Enemy = "FastHeadcrab"},
-			{Delay = 0.25, Enemy = "FastHeadcrab"},
-			{Delay = 0.25, Enemy = "FastHeadcrab"},
-			{Delay = 0.25, Enemy = "FastHeadcrab"},
-			{Delay = 0.25, Enemy = "FastHeadcrab"},
-			{Delay = 0.25, Enemy = "FastHeadcrab"},
-			{Delay = 0.25, Enemy = "FastHeadcrab"},
-			{Delay = 0.25, Enemy = "FastHeadcrab"},
-			{Delay = 0.25, Enemy = "FastHeadcrab"},
-			{Delay = 0.25, Enemy = "FastHeadcrab"},
-			{Delay = 0.25, Enemy = "FastHeadcrab"},
-			{Delay = 0.25, Enemy = "FastHeadcrab"},
-			{Delay = 0.25, Enemy = "FastHeadcrab"},
-			{Delay = 0.25, Enemy = "FastHeadcrab"},
-			{Delay = 0.25, Enemy = "FastHeadcrab"},
-			{Delay = 0.25, Enemy = "FastHeadcrab"},
-			{Delay = 0.25, Enemy = "FastHeadcrab"},
-			{Delay = 0.25, Enemy = "FastHeadcrab"},
-			{Delay = 0.25, Enemy = "FastHeadcrab"},
-			{Delay = 0.25, Enemy = "FastHeadcrab"},
-			{Delay = 0.25, Enemy = "FastHeadcrab"},
-			{Delay = 0.25, Enemy = "FastHeadcrab"},
-			{Delay = 0.25, Enemy = "FastHeadcrab"},
-			{Delay = 0.25, Enemy = "FastHeadcrab"},
-			{Delay = 0.25, Enemy = "FastHeadcrab"},
-			{Delay = 0.25, Enemy = "FastHeadcrab"}
-		}
-	},
-	{
-		Sequence = {
-			{Delay = 0.25, Enemy = "FastHeadcrab"},
-			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
-			{Delay = 0.25, Enemy = "FastHeadcrab"},
-			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
-			{Delay = 0.25, Enemy = "FastHeadcrab"},
-			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
-			{Delay = 0.25, Enemy = "FastHeadcrab"},
-			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
-			{Delay = 0.25, Enemy = "FastHeadcrab"},
-			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
-			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
-			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
-			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
-			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
-			{Delay = 0.25, Enemy = "PoisonHeadcrab"}
-		}
-	},
-	{
-		Sequence = {
-			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
-			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
-			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
-			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
-			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
-			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
-			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
-			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
-			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
-			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
-			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
-			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
-			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
-			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
-			{Delay = 0.25, Enemy = "Antlion"}
-		}
-	},
-	{
-		Sequence = {
-			{Delay = 0.25, Enemy = "Zombie"},
-			{Delay = 0.25, Enemy = "Zombie"},
-			{Delay = 0.25, Enemy = "Zombie"},
-			{Delay = 1, Enemy = "Antlion"},
-			{Delay = 0.25, Enemy = "Zombie"},
-			{Delay = 0.25, Enemy = "Zombie"},
-			{Delay = 0.25, Enemy = "Zombie"},
-			{Delay = 1, Enemy = "Antlion"},
-			{Delay = 0.25, Enemy = "Zombie"},
-			{Delay = 0.25, Enemy = "Zombie"},
-			{Delay = 0.25, Enemy = "Zombie"},
-			{Delay = 1, Enemy = "Antlion"},
-			{Delay = 0.25, Enemy = "Zombie"},
-			{Delay = 0.25, Enemy = "Zombie"},
-			{Delay = 0.25, Enemy = "Zombie"},
-			{Delay = 1, Enemy = "Antlion"},
-			{Delay = 0.25, Enemy = "Zombie"},
-			{Delay = 0.25, Enemy = "Zombie"},
-			{Delay = 0.25, Enemy = "Zombie"},
-			{Delay = 1, Enemy = "Antlion"},
-			{Delay = 0.25, Enemy = "Zombie"},
-			{Delay = 0.25, Enemy = "Zombie"},
-			{Delay = 0.25, Enemy = "Zombie"},
-			{Delay = 1, Enemy = "Antlion"},
-			{Delay = 0.25, Enemy = "Zombie"},
-			{Delay = 0.25, Enemy = "Zombie"},
-			{Delay = 0.25, Enemy = "Zombie"},
-			{Delay = 1, Enemy = "Antlion"},
+include("td_state.lua")
 
-		}
-	},
-	{
-		Sequence = {
-			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
-			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
-			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
-			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
-			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
-			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
-			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
-			{Delay = 1, Enemy = "Antlion"},
-			{Delay = 1, Enemy = "Antlion"},
-			{Delay = 1, Enemy = "Antlion"},
-			{Delay = 1, Enemy = "Antlion"},
-			{Delay = 1, Enemy = "Antlion"},
-			{Delay = 0.25, Enemy = "Zombie"},
-			{Delay = 0.25, Enemy = "Zombie"},
-			{Delay = 0.25, Enemy = "Zombie"},
-			{Delay = 0.25, Enemy = "Zombie"},
-			{Delay = 0.25, Enemy = "Zombie"},
-			{Delay = 0.25, Enemy = "Zombie"},
-			{Delay = 0.25, Enemy = "Zombie"},
-			{Delay = 0.25, Enemy = "Zombie"},
-			{Delay = 0.25, Enemy = "Zombie"},
-			{Delay = 0.25, Enemy = "Zombie"},
-			{Delay = 0.25, Enemy = "Zombie"},
-			{Delay = 0.25, Enemy = "Zombie"},
-			{Delay = 0.25, Enemy = "Zombie"},
-			{Delay = 0.25, Enemy = "Zombie"},
-			{Delay = 0.25, Enemy = "Zombie"},
-		}
-	},
-	{
-		Sequence = (function()
-			local tab = {}
-			-- well im too lazy
-			for i = 1, 150, 3 do
-				tab[i] = {Delay = 0.05, Enemy = "Headcrab"}
-				tab[i+1] = {Delay = 0.05, Enemy = "PoisonHeadcrab"}
-				tab[i+2] = {Delay = 0.05, Enemy = "FastHeadcrab"}
-			end
-			return tab
-		end)()
-	},]]
-	{
-		Sequence = (function()
-			local tab = {}
-			-- well im too lazy
-			for i = 1, 1000, 1 do
-				tab[#tab+1] = {Delay = 0.5, Enemy = "Headcrab"}
-			end
-			for i = 1, 1000, 1 do
-				tab[#tab+1] = {Delay = 0.5, Enemy = "Zombie"}
-			end
-			
-			return tab
-		end)()
-	}
-	--[[{	--Engine_Machiner waves, just to test
-		Sequence = {
-			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
-			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
-			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
-			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
-			{Delay = 0.25, Enemy = "FastHeadcrab"},
-			{Delay = 0.5,  Enemy = "Kleiner"},
-			{Delay = 0.25, Enemy = "Headcrab"},
-			{Delay = 0.25, Enemy = "Headcrab"},
-			{Delay = 0.25, Enemy = "FastHeadcrab"},
-			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
-			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
-			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
-			{Delay = 0.25, Enemy = "Antlion"},
-			{Delay = 0.25, Enemy = "Antlion"},
-			{Delay = 1,    Enemy = "Alyx"}
-		}
-	},
-	{	--Engine_Machiner waves, just to test
-		Sequence = {
-			{Delay = 0.25, Enemy = "Headcrab"},
-			{Delay = 0.25, Enemy = "FastHeadcrab"},
-			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
-			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
-			{Delay = 0.25, Enemy = "FastHeadcrab"},
-			{Delay = 0.25, Enemy = "Headcrab"},
-			{Delay = 0.25, Enemy = "Headcrab"},
-			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
-			{Delay = 0.25, Enemy = "Zombine"},
-			{Delay = 0.25, Enemy = "Zombie"},
-			{Delay = 0.25, Enemy = "FastZombie"},
-			{Delay = 0.25, Enemy = "Zombie"},
-			{Delay = 0.25, Enemy = "Zombie"},
-			{Delay = 0.25, Enemy = "Alyx"},
-			{Delay = 0.25, Enemy = "Alyx"}
-		}
-	},
-	{	--Engine_Machiner waves, just to test
-		Sequence = {
-			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
-			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
-			{Delay = 0.25, Enemy = "Zombie"},
-			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
-			{Delay = 0.25, Enemy = "FastHeadcrab"},
-			{Delay = 0.25, Enemy = "Zombine"},
-			{Delay = 0.25, Enemy = "FastZombie"},
-			{Delay = 0.25, Enemy = "Zombie"},
-			{Delay = 0.25, Enemy = "FastHeadcrab"},
-			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
-			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
-			{Delay = 0.25, Enemy = "PoisonHeadcrab"},
-			{Delay = 0.25, Enemy = "Antlion"},
-			{Delay = 0.25, Enemy = "Antlion"},
-			{Delay = 0.25, Enemy = "Zombine"}
-		}	
-	}]]
-}
+function StopGame()
+	ClearEnemies()
+	hook.Remove('Think',Tag)
+	hook.Remove('OnEnemyGotThroughExit',Tag)
+end
+
+hook.Add("OnEnemyGotThroughExit",Tag,function(enemy)
+	local lives = GetGlobalInt('tower_defense.lives')
+
+	SetGlobalInt("tower_defense.lives", lives - 1)
+	GAMEMODE:_ChatPrint(Color(255, 0, 0), "An enemy has gotten through! You now have " .. tostring(lives - 1) .. " lives left.")
+
+	spawned_enemies[enemy] = false
+
+	lives = GetGlobalInt('tower_defense.lives')
+	if lives < 1 then
+		GAMEMODE:_ChatPrint(Color(255, 0, 0), "You are out of lives and subsequently lost the game!")
+		-- PrintMessage(3, "Map will change in 5 seconds.")
+
+		StopGame()
+		if MapVote and MapVote.Start then
+			MapVote.Start(30, true, 8, "td_")
+		else
+			GAMEMODE:_ChatPrint(Color(255, 0, 0), "ERROR: Map voting is impossible, restarting server in 5s for current map.")
+			timer.Simple(5, function()
+				game.ConsoleCommand("changelevel " .. game.GetMap() .. "\n")
+			end)
+		end
+	end
+end)
+
+
+concommand.Add("_debug_add_enemy", function()
+local _ = SpawnEntity and SpawnEntity("tower_defense_enemy")
+end)
+-- 
