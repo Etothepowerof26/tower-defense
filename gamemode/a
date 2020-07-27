@@ -1,0 +1,89 @@
+module("tower_defense", package.seeall)
+-- ambient/alarms/warningbell1.wav
+mapTable = {
+	["td_wasteland_fix"] = {
+		Vector(-172.36859130859,-415,256.03125),
+		Vector(415.09606933594,-415,256.03125),
+		Vector(660,-528.67419433594,256.03121948242),
+		Vector(660,-699.03607177734,256.03125),
+		Vector(410.96697998047,-819,256.03128051758),
+		Vector(-392,-819,256.03125),
+		Vector(-392,-133.01284790039,256.03125),
+		Vector(-917,-150.60887145996,256.03125),
+		Vector(-917,-399.08746337891,256.03125),
+		{
+			Vector(-836,-524.24597167969,256.03125),
+			Vector(-986.75921630859,-523.60107421875,256.03121948242)
+		},
+		Vector(-856,-768.18408203125,256.03125),
+		Vector(-855.04656982422,-924.76928710938,256.03125),
+		Vector(-978.73059082031,-927.00848388672,256.03125)
+	}
+}
+
+maxLives = GetConVar("gtd_default_lives"):GetInt()
+newCash = GetConVar("gtd_default_cash"):GetInt()
+
+SetGlobalInt("tower_defense.round", 0)
+SetGlobalInt("tower_defense.enemies_left", 0)
+SetGlobalInt("tower_defense.time_left", 30)
+SetGlobalInt("tower_defense.lives", maxLives)
+
+hook.Add("PlayerInitialSpawn", "tower_defense", function(ply)
+	ply:SetNWInt("tower_defense.cash", newCash)
+	ply.td_towers = {}
+end)
+
+hook.Add("PlayerDisconnected", "tower_defense", function(ply)
+	if next(ply.td_towers) ~= nil then
+		for k,v in ipairs(ply.td_towers) do
+			v:SetPlayerOwner(0)
+		end
+	end
+	
+	PrintMessage(3, ply:Nick() .. "'s towers are now up for grabs!")
+end)
+	
+enemies = {}
+alreadyReset = false
+	
+function reset()
+	SetGlobalInt("tower_defense.round", 0)
+	SetGlobalInt("tower_defense.enemies_left", 0)
+	SetGlobalInt("tower_defense.time_left", 30)
+	
+	for k,v in pairs(ents.FindByClass("tower_defense_enemy")) do
+		v:Remove()
+	end
+end
+	
+function spawnMobs()
+end
+	
+local spawn = false
+	
+timer.Create("tower_defense.loop", .25, 0, function()
+	if #player.GetAll() > 0 then
+		alreadyReset = false
+		
+		SetGlobalInt("tower_defense.time_left", GetGlobalInt("tower_defense.time_left", 30) - 1)
+		
+		--if not spawn then
+		local e = ents.Create("tower_defense_enemy")
+		e:SetPos(mapTable[game.GetMap()][1])
+		e:Spawn()
+	else
+		if not alreadyReset then
+			reset()
+			alreadyReset = true
+		end
+	end
+end)
+	
+concommand.Add("asjkdnasjonkdas",function()
+	local e = ents.Create("tower_defense_tower")
+	e:SetPos(player.GetAll()[1]:GetPos()+Vector(0,0,60))
+	e:Spawn()
+	
+	e:EmitSound(")ambient/alarms/warningbell1.wav")
+end)
