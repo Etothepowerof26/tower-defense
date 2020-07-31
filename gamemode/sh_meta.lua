@@ -44,4 +44,37 @@ if SERVER then
 		self:SetCash(math.Clamp(self:GetCash() - amnt, 0, 2^31-1))
 		return true
 	end
+
+	-- tower stuff
+		
+	function Player:BuyTower(tower, pos)
+
+		// this piece of code doesn't work.
+		local wep = self:GetActiveWeapon()
+		if wep:GetClass() == "tower_defense_tool" then
+			wep:SendWeaponAnim(ACT_PHYSCANNON_ANIMATE)
+		end
+
+		self:EmitSound("ambient/alarms/warningbell1.wav")
+
+		local t = ents.Create(tower.ent)
+		t:Spawn()
+		t:SetPlayerOwner(self)
+		timer.Simple(0, function()
+			t:SetPos(pos + Vector(0, 0, t:OBBMaxs().z / 2))
+		end)
+
+		self:Notify("You have placed a " .. tower.name .. "!", 3, 5)
+		self:SetNWInt("tower_defense.cash", self:GetNWInt("tower_defense.cash") - tower.price)
+
+		if not placed_towers[self] then
+			placed_towers[self] = {t}
+		else
+			local placed = placed_towers[self]
+			placed[#placed + 1] = t
+		end
+
+	end
+
+	
 end

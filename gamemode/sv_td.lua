@@ -30,7 +30,7 @@ boss_round_music = "music/stingers/industrial_suspense2.wav"
 ResetGame = function()
 	max_lives = GetConVar("gtd_default_lives"):GetInt()
 	max_towers = GetConVar("gtd_max_towers"):GetInt()
-	new_cash = 5123213--GetConVar("gtd_default_cash"):GetInt()
+	new_cash = GetConVar("gtd_default_cash"):GetInt()
 
 	-- default global ints
 	SetGlobalInt("tower_defense.round", 0)
@@ -40,7 +40,12 @@ ResetGame = function()
 
 	SetGlobalBool("tower_defense.settingup", true)
 
-	PrintTable(Towers)
+	mapTable[game.GetMap()] = include("map_waypoints/" .. game.GetMap() .. ".lua") or {}
+	if next(mapTable[game.GetMap()]) ~= nil then
+		print("Loaded map waypoints for " .. game.GetMap())
+	else
+		print("No map waypoints for " .. game.GetMap())
+	end
 end
 
 function ClearEnemies()
@@ -77,29 +82,6 @@ do
 	end
 end
 
-
-function Player:BuyTower(tower,pos)
-	local wep = self:GetActiveWeapon()
-	if wep:GetClass() == "tower_defense_tool" then
-		wep:SendWeaponAnim(ACT_PHYSCANNON_ANIMATE)
-	end
-	self:EmitSound("ambient/alarms/warningbell1.wav")
-	local t=ents.Create(tower.ent)
-	t:SetSpawnEffect( true )
-	t:Spawn()
-	t:SetPlayerOwner(self)
-	timer.Simple(0,function()
-		t:SetPos(pos+Vector(0,0,t:OBBMaxs().z/2))
-	end)
-	self:Notify("You have placed a " .. tower.name .. "!", 3, 5)
-	self:SetNWInt("tower_defense.cash", self:GetNWInt("tower_defense.cash") - tower.price)
-	if not placed_towers[self] then
-		placed_towers[self] = {t}
-	else
-		local _t = placed_towers[self]
-		_t[#_t + 1] = t
-	end
-end
 net.Receive("tower_defense.BuyTower", function(len,ply)
 	local tower = net.ReadString()
 	if not Towers[tower] then ply:Kick() return end
@@ -111,7 +93,7 @@ net.Receive("tower_defense.BuyTower", function(len,ply)
 	local t = Towers[tower]
 	if ply:GetNWInt("tower_defense.cash",new_cash) >= t.price then
 		local pos = ply:GetEyeTrace().HitPos
-		ply:BuyTower(t,pos)
+		ply:BuyTower(t, pos)
 	else
 		ply:Notify("You cannot afford this tower!", 1, 5)
 	end
@@ -149,10 +131,10 @@ hook.Add("PlayerDisconnected", Tag, function(ply)
 	if placed_towers[ply] then
 		print("selling",ply,"towers")
 		for i = 1, #placed_towers[ply] do
-			local tower = placed_towers[ply]:GetClass()
+			local tower = placed_towers[ply][i]:GetClass()
 			money_pool = money_pool + GetTowerBasedOnClass(tower).price
 
-			placed_towers[ply]:Remove()
+			placed_towers[ply][i]:Remove()
 		end
 	end
 
@@ -167,26 +149,7 @@ hook.Add("PlayerDisconnected", Tag, function(ply)
 end)
 
 // TODO: Not hardcode.
-mapTable = {
-	["td_wasteland_fix"] = {
-		Vector(-172.36859130859,-415,256.03125),
-		Vector(415.09606933594,-415,256.03125),
-		Vector(660,-528.67419433594,256.03121948242),
-		Vector(660,-699.03607177734,256.03125),
-		Vector(410.96697998047,-819,256.03128051758),
-		Vector(-392,-819,256.03125),
-		Vector(-392,-133.01284790039,256.03125),
-		Vector(-917,-150.60887145996,256.03125),
-		Vector(-917,-399.08746337891,256.03125),
-		{
-			Vector(-836,-524.24597167969,256.03125),
-			Vector(-986.75921630859,-523.60107421875,256.03121948242)
-		},
-		Vector(-856,-768.18408203125,256.03125),
-		Vector(-855.04656982422,-924.76928710938,256.03125),
-		Vector(-978.73059082031,-927.00848388672,256.03125)
-	}
-}
+mapTable = {}
 hook.Add("PlayerLoadout", Tag, function(ply)
 	ply:Give("tower_defense_tool")
 end)
