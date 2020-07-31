@@ -12,87 +12,11 @@ function player.GetAllCurrentlyLoaded()
 	return tbl
 end
 
-local function wait(n)
-	local stop=SysTime()+n
-
-	while true do
-		if SysTime() < stop then
-			coroutine.yield()
-		else
-			break
-		end
-	end
-end
-
-local rounds = {
-	function()
-		for i = 1, 7 do
-			tower_defense.SpawnEnemy("tower_defense_headcrab")
-			wait(2)
-		end
-		--coroutine.yield(26)
-	end,
-	function()
-		for i = 1, 14 do
-			tower_defense.SpawnEnemy("tower_defense_headcrab")
-			wait(1)
-		end
-		--coroutine.yield(26)
-	end,
-	function()
-		for i = 1, 3 do
-			tower_defense.SpawnEnemy("tower_defense_headcrab")
-			wait(1)
-		end
-		
-		for i = 1, 2 do
-			tower_defense.SpawnEnemy("tower_defense_fheadcrab")
-			wait(.5)
-		end
-
-		wait(1.5)
-
-		for i = 1, 5 do
-			tower_defense.SpawnEnemy("tower_defense_headcrab")
-			wait(.75)
-		end
-	end,
-	function()
-		for i = 1, 10 do
-			tower_defense.SpawnEnemy("tower_defense_fheadcrab")
-			wait(.75)
-		end
-		wait(1)
-		for i = 1, 3 do
-			tower_defense.SpawnEnemy("tower_defense_headcrab")
-			wait(1)
-		end
-	end,
-	function()
-		for i = 1, 5 do
-			tower_defense.SpawnEnemy("tower_defense_fheadcrab")
-			wait(.6)
-		end
-		tower_defense.SpawnEnemy("tower_defense_zombie")
-	end,
-	function()
-		for i = 1, 3 do
-			tower_defense.SpawnEnemy("tower_defense_zombie")
-			wait(2)
-		end
-		for i = 1, 7 do
-			tower_defense.SpawnEnemy("tower_defense_fheadcrab")
-			wait(.6)
-		end
-	end
-
-}
+// TODO: Not hardcode.
+local rounds = include('rounds/round_sequence_normal.lua') or {}
+PrintTable(rounds)
 
 module(Tag, package.seeall)
-
-local function thegamemode()
-	return GM or GAMEMODE or {}
-end
 
 /*
 	Tower Defense gamemode for GMod 13
@@ -103,9 +27,13 @@ SetGlobalInt("tower_defense.GameState", GAME_STATE_WAITING_PLAYERS)
 
 function SpawnEnemy(ent)
 	if not ent:find("tower_defense") then return end
+
 	local e = ents.Create(ent)
 	e:SetPos(mapTable[game.GetMap()][1])
 	e:Spawn()
+
+	print(e)
+
 	spawned_enemies[e] = true
 end
 
@@ -118,6 +46,7 @@ local LAST_MESSAGE = SysTime()
 
 spawned_enemies = {}
 
+// Ow
 function AllFalse(tab)
 	for k,v in pairs(tab) do
 		if v == false then continue else return false end
@@ -153,10 +82,10 @@ hook.Add("Think", Tag, function()
 	elseif state == GAME_STATE_INTERMISSION then
 		if #player.GetAllCurrentlyLoaded() > 0 then
 			if GetGlobalInt("tower_defense.GameStartTimer", 0) == 0 then
-				SetGlobalInt("tower_defense.GameStartTimer", SysTime() + 30)
+				SetGlobalInt("tower_defense.GameStartTimer", SysTime() + 15)
 				LAST_MESSAGE = SysTime()
 
-				PrintMessage(3, "The next wave will start in 30 seconds!")
+				PrintMessage(3, "The next wave will start in 15 seconds!")
 			else
 				local time = math.ceil(GetGlobalInt("tower_defense.GameStartTimer", 0) - SysTime())
 				local wave = GetGlobalInt("tower_defense.round", 0) + 1
@@ -184,15 +113,19 @@ hook.Add("Think", Tag, function()
 			SetGlobalInt("tower_defense.round", round)
 			
 			if not rounds[round] then
+				// Supposed end of the game. Let's abort.
+				
 				StopGame()
 				MapVote.Start(30, true, 8, "td_")
 				return
 			end 
 			SPAWNING_COROUTINE = coroutine.create(rounds[round])
+			print(SPAWNING_COROUTINE)
 		end
 
 		local worked, val = coroutine.resume(SPAWNING_COROUTINE)
 		if not worked then
+			print(worked,val)
 			SetGlobalInt("tower_defense.GameState", GAME_STATE_WAITING_ALL_DEAD)
 		end
 	-- waiting for all enemies to die

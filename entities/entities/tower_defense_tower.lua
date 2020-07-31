@@ -10,6 +10,9 @@ function ENT:SetupDataTables()
 	self:NetworkVar("Int", 1, "EnemiesKilled")
 	self:NetworkVar("Int", 2, "TargetDamage")
 	self:NetworkVar("Int", 3, "TargetRange")
+
+	self:NetworkVar("Vector", 0, "StartTrace")
+
 	self:NetworkVar("Entity", 0, "PlayerOwner") -- ent index
 end
 
@@ -24,6 +27,7 @@ function ENT:DefaultVars()
 	self:SetEnemiesKilled(0)
 	self:SetTargetDamage(2.5)
 	self:SetTargetRange(300^2)
+	self:SetStartTrace(Vector(0, 0, 16))
 end
 
 if SERVER then
@@ -43,7 +47,36 @@ end
 		self:SetMoveType(MOVETYPE_NONE)
 		self:SetCollisionGroup(COLLISION_GROUP_DEBRIS)
 		self:DefaultVars()
+
+
+		local shooter = ents.Create("shooter")
+		shooter:Spawn()
+		self.shooter = shooter
+		self.shooter.tower = self
+		--print(shooter)
+		-- self.shooter:Spawn()
 		--self:FallToFloor()
+	end
+
+	function ENT:CanSee(shooter, target)
+		local e_t = target:GetPos()
+		e_t.z = target:GetPos().z
+
+		-- do return true end
+
+		if self:GetPos():DistToSqr(e_t) > self:GetTargetRange() then
+			--print(self,target,"false","FARAWAY")
+			return false
+		end
+
+		--
+		if shooter:VisibleVec(target:GetPos() + Vector(0, 0, target:OBBCenter().z)) then
+			--print(self,target,"true","VISIBLEVEC")
+			return true
+		end
+		
+		--print(self,target,"false",tr.Entity)
+		return false
 	end
 	
 	ENT.Target = nil
@@ -55,7 +88,7 @@ end
 			for k,v in pairs(sphere) do
 				if not entCheck(v) then continue end
 				
-				if v:Health() >= highest.hp and self:Visible(v) then
+				if v:Health() >= highest.hp and self:CanSee(self.shooter, v) then
 					highest.ent = v
 					highest.hp = v:Health()
 				else
@@ -71,7 +104,7 @@ end
 			for k,v in pairs(sphere) do
 				if not entCheck(v) then continue end
 				
-				if v:Health() <= lowest.hp and self:Visible(v) then
+				if v:Health() <= lowest.hp and self:CanSee(self.shooter, v) then
 					lowest.ent = v
 					lowest.hp = v:Health()
 				else
@@ -86,7 +119,7 @@ end
 			for k,v in pairs(sphere) do
 				if not entCheck(v) then continue end
 				
-				if v:DistToSqr(self:GetPos()) <= closest.dist and self:Visible(v) then
+				if v:DistToSqr(self:GetPos()) <= closest.dist and self:CanSee(self.shooter, v) then
 					closest.ent = v
 					closest.dist = v:DistToSqr(self:GetPos())
 				else
@@ -101,7 +134,7 @@ end
 			for k,v in pairs(sphere) do
 				if not entCheck(v) then continue end
 				
-				if v:DistToSqr(self:GetPos()) >= furthest.dist and self:Visible(v) then
+				if v:DistToSqr(self:GetPos()) >= furthest.dist and self:CanSee(self.shooter, v) then
 					furthest.ent = v
 					furthest.dist = v:DistToSqr(self:GetPos())
 				else
@@ -120,6 +153,7 @@ end
 	
 	function ENT:Think()
 		if not self.LastShoot then
+			self.shooter:SetPos(self:GetPos() + self:GetStartTrace())
 			self.LastShoot = SysTime()
 		end
 		
@@ -127,7 +161,7 @@ end
 			self.LastShoot = SysTime()
 			
 			if IsValid(self.Target) and self.Target:Health() > 0 then
-				local src = self:GetPos() + Vector(0, 0, self:OBBMaxs().z / 2)
+				local src = self.shooter:GetPos()
 				local pos = self.Target:GetPos() + self.Target:OBBCenter()
 				local b = {
 					Attacker = self:GetOwner(),
@@ -140,7 +174,8 @@ end
 					Damage = self:GetTargetDamage(),
 					AmmoType = 2
 				}
-				self:FireBullets(b)
+
+				self.shooter:FireBullets(b)
 			end
 			
 			if not self.Target or not IsValid(self.Target) then
@@ -157,7 +192,38 @@ end
 	
 else
 
+	local selmat = Material("SGM/playercircle")
+	local function drawBubble(self, width, height, col, pos)
+		local trace = {}
+		trace.start = self:GetPos() + Vector(0, 0, 50)
+		trace.endpos = trace.start + Vector(0, 0, -300)
+		trace.filter = {self, unpack(player.GetAll())}
+		
+		local tr = util.TraceLine(trace)
+		
+		if not tr.HitWorld then
+			tr.HitPos = self:GetPos()
+		end
+		
+		render.SetMaterial(selmat)
+		
+		-- local a = math.abs(math.sin(self.SinAction / 25) * 100) + 50
+		-- render.DrawQuadEasy(tr.HitPos + tr.HitNormal, tr.HitNormal, 20, 20, Color(100, 255, 100, a))
+		render.DrawQuadEasy((not pos and tr.HitPos or pos) + tr.HitNormal, tr.HitNormal, width, height, col)
+	end
+
 	function ENT:Draw()
+		if not self.n then
+			self.n = true 
+				
+			local ed = EffectData()
+			ed:SetEntity(self)
+			util.Effect( "propspawn", ed, true, true )
+		end
+		self.b = self.b and self.b + 1 or 0
+		local a = math.abs(math.sin(self.b / 200) * 25)
+		local r = self:GetTargetRange() ^ 0.5
+		--drawBubble(self, r, r, Color(255, 255, 255, a), self:GetPos())
 		self:DrawModel()
 	end
 	

@@ -23,7 +23,57 @@ function SWEP:Initialize()
 	self:SetHoldType(self.HoldType)
 end
 
-function SWEP:DrawHUD()
+if CLIENT then
+
+
+	local selmat = Material("SGM/playercircle")
+	local function drawBubble(self, width, height, col, pos)
+		local trace = {}
+		trace.start = self:GetPos() + Vector(0, 0, 50)
+		trace.endpos = trace.start + Vector(0, 0, -300)
+		trace.filter = {self, unpack(player.GetAll())}
+		
+		local tr = util.TraceLine(trace)
+		
+		if not tr.HitWorld then
+			tr.HitPos = self:GetPos()
+		end
+		
+		render.SetMaterial(selmat)
+		
+		-- local a = math.abs(math.sin(self.SinAction / 25) * 100) + 50
+		-- render.DrawQuadEasy(tr.HitPos + tr.HitNormal, tr.HitNormal, 20, 20, Color(100, 255, 100, a))
+		render.DrawQuadEasy((not pos and tr.HitPos or pos) + tr.HitNormal, tr.HitNormal, width, height, col)
+	end
+		
+	function SWEP:DrawHUD()
+		local f = string.format
+		if !self.Markup then
+			
+			self.Markup = markup.Parse(
+				"<font=tdTitle><color=255,255,255>Press <color=255,0,0>" ..
+				string.upper(input.LookupBinding("+reload", true)) ..
+				"<color=255,255,255> to open your Tower menu.\n" ..
+
+				"Look at a tower and rightclick to see it's menu."
+			)
+
+		end
+
+		self.Markup:Draw(ScrW() / 2 - self.Markup:GetWidth() / 2, ScrH() - ScrH() / 4 - self.Markup:GetHeight() / 2)
+
+		local _t = f("Selected tower: %s", tower_defense.CurrentlySelectedTower and tower_defense.CurrentlySelectedTower.name or "Nothing") or ""
+		surface.SetFont("tdDesc")
+		local tw, th = surface.GetTextSize(_t)
+		surface.SetTextPos(ScrW() / 2 + 25, ScrH() / 2 - th / 2)
+		surface.DrawText(_t)
+
+		--[[local p = LocalPlayer()
+		cam.Start3D()
+			drawBubble(p, 50, 50, Color(255,0,0, 100), p:GetEyeTrace().HitPos)
+		cam.End3D()]]
+
+	end
 
 end
 

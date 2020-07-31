@@ -2,10 +2,6 @@ local Tag = "tower_defense"
 local Player = FindMetaTable("Player")
 module(Tag, package.seeall)
 
-local function thegamemode()
-	return GM or GAMEMODE or {}
-end
-
 /*
 	Tower Defense gamemode for GMod 13
 	made by E^26, started on 2020
@@ -34,7 +30,7 @@ boss_round_music = "music/stingers/industrial_suspense2.wav"
 ResetGame = function()
 	max_lives = GetConVar("gtd_default_lives"):GetInt()
 	max_towers = GetConVar("gtd_max_towers"):GetInt()
-	new_cash = GetConVar("gtd_default_cash"):GetInt()
+	new_cash = 5123213--GetConVar("gtd_default_cash"):GetInt()
 
 	-- default global ints
 	SetGlobalInt("tower_defense.round", 0)
@@ -88,7 +84,8 @@ function Player:BuyTower(tower,pos)
 		wep:SendWeaponAnim(ACT_PHYSCANNON_ANIMATE)
 	end
 	self:EmitSound("ambient/alarms/warningbell1.wav")
-	local t=ents.Create("tower_defense_tower")
+	local t=ents.Create(tower.ent)
+	t:SetSpawnEffect( true )
 	t:Spawn()
 	t:SetPlayerOwner(self)
 	timer.Simple(0,function()
@@ -169,6 +166,7 @@ hook.Add("PlayerDisconnected", Tag, function(ply)
 	end
 end)
 
+// TODO: Not hardcode.
 mapTable = {
 	["td_wasteland_fix"] = {
 		Vector(-172.36859130859,-415,256.03125),

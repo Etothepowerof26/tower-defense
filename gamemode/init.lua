@@ -1,6 +1,10 @@
 AddCSLuaFile("cl_init.lua")
 AddCSLuaFile("shared.lua")
 AddCSLuaFile("sh_meta.lua")
+
+AddCSLuaFile("pnl/DTowerPanel.lua")
+AddCSLuaFile("pnl/DTowerUpgradePanel.lua")
+
 include("shared.lua")
 include("sv_td.lua")
 include("sh_meta.lua")
@@ -40,7 +44,6 @@ function Player:Notify(str, enum, time)
 		net.WriteUInt(time or 2, 8)
 	net.Send(self)
 end
-
 
 function GM:_ChatPrint(...)
 	net.Start('tower_defense.ChatPrint')

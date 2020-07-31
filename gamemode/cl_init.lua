@@ -1,6 +1,16 @@
 include("shared.lua")
-include("cl_td.lua")
 include("sh_meta.lua")
+include("cl_td.lua")
+
+// https://github.com/jorjic/gmtemplate/blob/master/gamemode/extras/cl_flash_on_ready.lua
+
+local function flashOnInitPostEntity()
+	if not system.HasFocus() then
+		system.FlashWindow()
+		hook.Remove( "InitPostEntity", "FlashOnGameLoad" )
+	end
+end
+hook.Add( "InitPostEntity", "FlashOnGameLoad", flashOnInitPostEntity )
 
 net.Receive('tower_defense.PlaySound', function()
 	surface.PlaySound(net.ReadString())
@@ -82,34 +92,34 @@ function draw.LinearGradient(x, y, w, h, stops, horizontal)
 	mesh.End()
 end
 
-local nextUpdate = 0
-local function glowText(text, font, x, y, color, xalign, yalign, thickness, pulse)
-	if (nextUpdate <= CurTime()) then
-		nextUpdate = CurTime() + 0.5
-	end
-
+local function glowText(text, font, x, y, color, xalign, yalign, thickness, dopulse)
 	local col = Color(color.r, color.g, color.b, color.a)
 	local p = color.a / 255
-	if (pulse == true) then
-		local s = math.Clamp(math.abs(math.sin(RealTime() / 6 * 3)), 0, 1)
+	if dopulse == true then
+		local s = math.Clamp(math.abs(math.sin(CurTime() / 6 * 3)), 0, 1)
 		col = Color(color.r * s, color.g * s, color.b * s, p * (s * 20))
 	end
 
 	surface.SetFont(font)
 	local w, h = surface.GetTextSize(text)
-	if (xalign == TEXT_ALIGN_CENTER) then
-		x = x - w / 2
-	end
-
-	if (yalign == TEXT_ALIGN_CENTER) then
-		y = y - h / 2
-	end
-
 	w = w + 2
+
+	x = xalign == TEXT_ALIGN_CENTER and (x - w / 2) or x
+	y = yalign == TEXT_ALIGN_CENTER and (y - h / 2) or y
+
 	for i = 1, thickness do
-		local thick = i
 		col.a = (64 * ((1 / 10 * i))) * p
-		draw.SimpleTextOutlined(text, font, x + w / 2, y + h / 2, Color(color.r, color.g, color.b, col.a / 10), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, thickness - thick, col)
+		draw.SimpleTextOutlined(
+			text,
+			font,
+			x + w / 2,
+			y + h / 2,
+			Color(color.r, color.g, color.b, col.a / 10),
+			TEXT_ALIGN_CENTER,
+			TEXT_ALIGN_CENTER,
+			thickness - i,
+			col
+		)
 	end
 end
 
@@ -117,7 +127,10 @@ local cLerp = Color(255, 255, 255)
 local tLerp = 0
 
 hook.Add("PostDrawTranslucentRenderables", "TD:DrawTowerNames", function()
-	
+	-- this is screaming
+	--      INEFFICENT
+	-- i am also screaming
+
 	local e = ents.FindByClass"tower_defense_enemy"
 	if next(e) == nil then
 		e = {}
@@ -127,8 +140,8 @@ hook.Add("PostDrawTranslucentRenderables", "TD:DrawTowerNames", function()
 			end
 		end
 	end
-	if not (next(e) == nil) then
-		
+
+	if not table.IsEmpty(e) then
 		for k,v in pairs(e) do
 			if v:Health() > 1 then
 				local mul = 3
@@ -155,6 +168,32 @@ hook.Add("PostDrawTranslucentRenderables", "TD:DrawTowerNames", function()
 		end
 	end
 end)
+
+//game.AddParticles( "particles/explosion.pcf" )
+//PrecacheParticleSystem( "ExplosionCore_wall" )
+
+hook.Add("HUDPaint", "AdvancedInfo", function()
+	//surface.SetTextPos(10, 10)
+	surface.SetFont("BudgetLabel")
+	surface.SetTextColor(255, 255, 255)
+
+	local tr=LocalPlayer():GetEyeTrace()
+	local i = 0
+	for k,v in pairs(tr) do
+		surface.SetTextPos(10, 10+10*i)
+		surface.DrawText(k.." = "..tostring(v))
+		i=i+1
+	end
+	
+	//util.ParticleTracer( "ExplosionCore_wall", LocalPlayer():EyePos(), Vector(0, 0, 0), true )
+
+	//surface.DrawText(table.ToString(LocalPlayer():GetEyeTrace()))
+end)
+
+
+
+
+
 hook.Add("HUDPaint", "yeet", function()
 	-- cash
 	draw.LinearGradient(0, ScrH() / 4, 350, 35, {

@@ -75,7 +75,7 @@ if SERVER then
 		local inf = dmginfo:GetInflictor()
 
 		if IsValid(inf) then
-			local owner = inf:GetPlayerOwner()
+			local owner = inf.tower and inf.tower:GetPlayerOwner() or nil
 			if IsValid(owner) then
 				owner:SetNWInt("tower_defense.cash", owner:GetNWInt("tower_defense.cash") + 2)
 			end
