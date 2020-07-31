@@ -1,6 +1,9 @@
 # tower-defense
 Garry's Mod Tower Defense gamemode
 
+## YOU SHOULD NOT USE THE MASTER BRANCH FOR ANYTHING.
+This branch is really outdated and I hate the code. See the rewrite branch for a better version that is in the works.
+
 ### Defining a tower
 1. Navigate to sh_td.lua
 2. Find `TD.TowerTable`
