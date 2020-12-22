@@ -9,29 +9,13 @@
 	{
 		1
 		{
-			"name"		"gtd_speed_scale"
-			"text"		"Exponential speed scale of the enemies"
-			"type"		"Numeric"
-			"default"	"1.005"
-		}
-		
-		2
-		{
-			"name"		"gtd_health_scale"
-			"text"		"Exponential health scale of the enemies"
-			"type"		"Numeric"
-			"default"	"1.01"
-		}
-		
-		3
-		{
 			"name"		"gtd_default_lives"
 			"text"		"Default lives for the game"
 			"type"		"Numeric"
 			"default"	"20"
 		}
 		
-		4
+		2
 		{
 			"name"		"gtd_default_cash"
 			"text"		"Default amount of cash per player"
@@ -39,10 +23,10 @@
 			"default"	"150"
 		}
 
-		5
+		3
 		{
 			"name"		"gtd_max_towers"
-			"text"		"Maximum towers a player can have."
+			"text"		"Maximum towers a player can have"
 			"type"		"Numeric"
 			"default"	"15"
 		}
