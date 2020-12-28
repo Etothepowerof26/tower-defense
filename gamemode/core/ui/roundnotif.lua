@@ -45,22 +45,18 @@ function DoRoundNotificationFunc( tab )
 	local c
 
 	function frame:Paint( w, h )
-			if not _a then
-				_a = 0
-			else
-				_a = Lerp( 0.1, _a, 255 )
-			end
+		if not _a then
+			_a = 0
+		else
+			_a = Lerp( 0.1, _a, 255 )
+		end
 		render.SetColorMaterial()
 		surface.SetDrawColor(25, 25, 25, _a)
 		surface.DrawRect(0, 0, w, h)
 
 		if SysTime() > start + 0.5 then
-			if not a then
-				a = 0
-			else
-				a = Lerp( 0.025, a, 255 )
-			end
-			
+			a = a and Lerp( 0.01, a, 255 ) or 0
+
 			surface.SetFont( "DiffShow" )
 			surface.SetTextColor( 255, 255, 255, a )
 			local tw, th = surface.GetTextSize("Difficulty:")
@@ -68,29 +64,74 @@ function DoRoundNotificationFunc( tab )
 			surface.DrawText( "Difficulty:" )
 		end
 
-		if SysTime() > start + 1.5 then
-			if not b then
-				b = 0
-			else
-				b = Lerp( 0.025, b, 255 )
-			end
+		if SysTime() > start + 2 then
+			b = b and Lerp( 0.01, b, 255 ) or 0
+
 			tab.NameColor.a = b
 
-			surface.SetFont( "DiffName" )
-			local tw, th = surface.GetTextSize( tab.Name or "Normal" )
-			local tx, ty = w / 2 - tw / 2, h / 4 - th / 2
+			do
+				surface.SetFont( "DiffName" )
+				local txt = tab.Name or "Normal" 
+				local tw, th = surface.GetTextSize( txt )
+				local tx, ty = w / 2 - tw / 2, h / 4 - th / 2
 
-			surface.SetMaterial(glowmat)
-			surface.SetDrawColor(tab.NameColor.r, tab.NameColor.g, tab.NameColor.b, math.Remap( b / 255, 0, 1, 0, 80 ))
-			surface.DrawTexturedRect(tx - 65, ty - 15, tw + 130, th + 30)
+				surface.SetMaterial( glowmat )
+				surface.SetDrawColor( tab.NameColor.r, tab.NameColor.g, tab.NameColor.b, math.Remap( b / 255, 0, 1, 0, 80 ) )
+				surface.DrawTexturedRect( tx - 65, ty - 15, tw + 130, th + 30 )
 
-			
---glowmat
-			surface.SetTextColor( tab.NameColor:Unpack() )
-			surface.SetTextPos( w / 2 - tw / 2, h / 4 - th / 2 )
-			surface.DrawText( tab.Name )
+				surface.SetTextColor( tab.NameColor:Unpack() )
+				surface.SetTextPos( tx, ty )
+				surface.DrawText( txt )
+			end
+
+			do
+				surface.SetFont( "DiffShow" )
+				local txt = tab.Description or "N/A"
+				local tw, th = surface.GetTextSize( txt )
+				local tx, ty = w / 2 - tw / 2, h / 2 - th / 2
+
+				surface.SetTextColor( tab.NameColor:Unpack() )
+				surface.SetTextPos( tx, ty )
+				surface.DrawText( txt )
+			end
+
 		end
 
+		if SysTime() > start + 3 then
+			c = c and Lerp( 0.025, c, 255 ) or 0
+
+			local start = h / 1.5
+
+			surface.SetFont( "DiffShow" )
+
+			do
+				local str = "x" .. tostring( tab.CashMultiplier ) .. " Cash Multiplier"
+				local tw, th = surface.GetTextSize( str )
+				surface.SetTextColor( 50, 255, 50, c )
+				surface.SetTextPos( w / 2 - tw / 2, start - th / 2 )
+				surface.DrawText( str )
+
+				start = start + th
+			end
+			do
+				local str = "x" .. tostring( tab.SpeedMultiplier ) .. " Speed"
+				local tw, th = surface.GetTextSize( str )
+				surface.SetTextColor( 50, 255, 255, c )
+				surface.SetTextPos( w / 2 - tw / 2, start - th / 2 )
+				surface.DrawText( str )
+
+				start = start + th
+			end
+			do
+				local str = tostring( tab.LifeMultiplier * ( --[[ TODO: not hardcode :( ]]20 ) .. " Lives" )
+				local tw, th = surface.GetTextSize( str )
+				surface.SetTextColor( 255, 50, 50, c )
+				surface.SetTextPos( w / 2 - tw / 2, start - th / 2 )
+				surface.DrawText( str )
+
+				start = start + th
+			end
+		end
 	end
 
 	timer.Simple( 12, function()

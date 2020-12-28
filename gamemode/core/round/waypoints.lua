@@ -81,19 +81,20 @@ if SERVER then
 
 end
 
-
+function WAYPOINTS.FormatIDString(id)
+	return "_" .. tostring(id)
+end
 
 if SERVER then
 
 	AddCSLuaFile("waypoint_admin.lua")
+	AddCSLuaFile("waypoint_arrowbuilder.lua")
 
 	util.AddNetworkString("TD_WaypointRequest")
 	file.CreateDir('tdwaypoints')
 	WAYPOINTS.MapWaypoints = WAYPOINTS.MapWaypoints || {}
 
-	function WAYPOINTS.FormatIDString(id)
-		return "_" .. tostring(id)
-	end
+	PrintTable(WAYPOINTS.MapWaypoints)
 
 	function WAYPOINTS.GetStored(map)
 		if not map then
@@ -158,7 +159,11 @@ if SERVER then
 		net.Start("TD_WaypointRequest")
 			net.WriteBit(nowayp and 0 or 1)
 			if not nowayp then
-				net.WriteUInt(#WAYPOINTS.MapWaypoints, 8)
+				net.WriteUInt(table.Count(WAYPOINTS.MapWaypoints), 8)
+				for k,v in pairs(WAYPOINTS.MapWaypoints) do
+					net.WriteString(k)
+					net.WriteTable(v)
+				end
 			end
 		net.Send(ply)
 	end)
@@ -168,6 +173,7 @@ end
 if CLIENT then
 
 	include("waypoint_admin.lua")
+	include("waypoint_arrowbuilder.lua")
 
 	function WAYPOINTS.Init()
 		return
@@ -194,14 +200,52 @@ if CLIENT then
 		WAYPOINTS.OurWaypoints = {}
 
 		local amount = net.ReadUInt(8)
+		print(amount)
 
 		for i = 1, amount do
-			--local vec = net.ReadVe
+			WAYPOINTS.OurWaypoints[net.ReadString()] = net.ReadTable()
 		end
 	end)
 
 	// hook.Add("something", "WAYPOINTS", WAYPOINTS.Render)
+	local color_red = Color(255, 0, 0)
+	local color_green = Color(0, 255, 0)
+
 	function WAYPOINTS.Render()
+		--print("drawing waypoints!")
+		-- local i = 0
+		local wp = WAYPOINTS.OurWaypoints
+		if not wp or next(wp) == nil then
+			return
+		end
+		
+		render.SetColorMaterial()
+		for k,v in pairs(wp) do
+			if v.isStartingPoint then
+				local the_next = wp[WAYPOINTS.FormatIDString(v.nextWaypoint)]
+
+				local ang = (the_next.pos - v.pos):Angle()
+				local total_length = 50 -- units
+
+				if render.DrawArrow3D then
+					local galpha = math.abs(math.sin(CurTime() * 2) * 255)
+					
+					render.DrawArrow3D(total_length, 0.5, total_length / 2, v.pos, ang, Color(0, 255, 0, galpha), 10)
+				end
+--render.DrawArrow3D = function(length, relative_arrowhead_start, width, pos, ang, color, height)
+
+				-- render.DrawLine( v.pos, , color_green )
+			else
+				-- isStartingPoint
+				render.DrawSphere(v.pos, 10, 10, 10, color_white)
+			end
+		end
 	end
 
+	concommand.Add("dowaypoint",function()
+		WAYPOINTS.Request()
+		timer.Simple(0.5, function()
+		hook.Add("PostDrawOpaqueRenderables", "draw", WAYPOINTS.Render)
+		end)
+	end)
 end

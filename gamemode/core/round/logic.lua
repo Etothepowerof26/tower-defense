@@ -105,10 +105,12 @@ if SERVER then
 	end
 
 
-	hook.Add("Think", "ROUNDS_Logic", ROUNDS.DoGameLogic)
+	hook.Remove("Think", "ROUNDS_Logic", ROUNDS.DoGameLogic)
 
-	concommand.Add("SpawnEnemyAtWill", function()
-		ROUNDS.SpawnEnemy("td_enemy_thecrab")
+	concommand.Add("test_headcrab_swarm", function()
+		timer.Create("the crabs are invading", 0.75, 0, function()
+			ROUNDS.SpawnEnemy("td_enemy_thecrab")
+		end)
 	end)
 
 
